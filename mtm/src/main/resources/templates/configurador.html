@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Configurar Producto</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Fuente -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* CONTENEDOR */
+        .config-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            animation: fadeIn 0.6s ease;
+        }
+
+        /* IMAGEN */
+        .product-img {
+            width: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        /* TITULOS */
+        .product-title {
+            font-weight: 600;
+        }
+
+        .label {
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        /* INPUTS */
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* BOTON */
+        .btn-custom {
+            background-color: #ff6600;
+            color: white;
+            border-radius: 25px;
+            padding: 12px;
+            transition: 0.3s;
+        }
+
+        .btn-custom:hover {
+            background-color: #e65c00;
+        }
+
+        /* ANIMACION */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg" style="background-color:#111;">
+    <div class="container">
+
+        <a class="navbar-brand text-white" href="/">MTM</a>
+
+        <!-- BUSCADOR -->
+        <form class="d-flex mx-auto" method="get" action="/">
+            <input class="form-control me-2" type="search" name="search" placeholder="Buscar productos...">
+            <button class="btn btn-warning">Buscar</button>
+        </form>
+
+        <!-- USUARIO -->
+        <div class="d-flex align-items-center gap-3">
+
+            <!-- NO LOGUEADO -->
+            <div th:if="${usuarioSesion == null}">
+                <a href="/login" class="text-white">Iniciar sesión</a>
+                <a href="/registro" class="btn btn-warning btn-sm ms-2">Registrarse</a>
+            </div>
+
+            <!-- LOGUEADO -->
+            <div th:if="${usuarioSesion != null}" class="text-white">
+
+                Hola, <b th:text="${usuarioSesion.nombre}"></b>
+
+                <a th:if="${usuarioSesion.rol.nombre == 'ADMIN'}"
+                   href="/admin"
+                   class="btn btn-warning btn-sm ms-2">
+                    Admin
+                </a>
+
+                <a href="/logout" class="btn btn-outline-light btn-sm ms-2">
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+</nav>
+
+<div class="container mt-5">
+
+    <div th:if="${error}" class="alert alert-danger text-center">
+        <span th:text="${error}"></span>
+    </div>
+
+    <div class="config-container">
+
+        <div class="row">
+
+            <!-- IMAGEN -->
+            <div class="col-md-6">
+                <img th:src="${producto.imagenUrl}" class="product-img">
+            </div>
+
+            <!-- FORMULARIO -->
+            <div class="col-md-6">
+
+                <h3 class="product-title" th:text="${producto.nombre}"></h3>
+                <p class="text-muted" th:text="${producto.descripcion}"></p>
+
+                <form th:action="@{/calcular}" method="post">
+
+                    <input type="hidden" name="productoId" th:value="${producto.idProducto}"/>
+
+                    <label class="label">Material</label>
+                    <select class="form-select" name="materialId" required>
+                        <option th:each="m : ${materiales}"
+                                th:value="${m.idMaterial}"
+                                th:text="${m.nombre}">
+                        </option>
+                    </select>
+
+                    <label class="label">Acabado</label>
+                    <select class="form-select" name="acabadoId" required>
+                        <option th:each="a : ${acabados}"
+                                th:value="${a.idAcabado}"
+                                th:text="${a.nombre}">
+                        </option>
+                    </select>
+
+                    <label class="label">Tipo de patas</label>
+                    <select class="form-select" name="pataId" required>
+                        <option th:each="p : ${patas}"
+                                th:value="${p.idTipoPata}"
+                                th:text="${p.nombre}">
+                        </option>
+                    </select>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="label">Largo (cm)</label>
+                            <input class="form-control"
+                                   type="number"
+                                   step="0.01"
+                                   name="largo"
+                                   min="1"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="label">Ancho (cm)</label>
+                            <input class="form-control"
+                                   type="number"
+                                   step="0.01"
+                                   name="ancho"
+                                   min="1"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-custom w-100">
+                            Calcular precio
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+            <!-- RESULTADO -->
+            <div class="mt-4" th:if="${precio != null}">
+                <div style="
+        background: #111;
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        animation: fadeIn 0.5s ease;
+    ">
+                    <small>Precio estimado</small>
+                    <h2 style="margin:0;">$<span th:text="${precio}"></span></h2>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
