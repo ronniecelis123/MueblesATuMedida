@@ -55,4 +55,12 @@ public class RefreshTokenService {
                 .findByToken(token)
                 .orElse(null);
     }
+    public void deleteByUsuario(
+            Usuario usuario
+    ) {
+
+        repository.deleteByUsuario(
+                usuario
+        );
+    }
 }

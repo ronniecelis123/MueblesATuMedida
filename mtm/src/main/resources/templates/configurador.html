@@ -31,13 +31,14 @@
         ===================================== */
 
         #viewer-container{
-            width:100%;
-            height:550px;
-            border-radius:15px;
-            overflow:hidden;
-            background:#f0f0f0;
-            border:1px solid #ddd;
-        }
+        width:100%;
+        height:550px;
+        min-height:550px;
+        border-radius:15px;
+        overflow:hidden;
+        background:#f0f0f0;
+        border:1px solid #ddd;
+    }
 
         canvas{
             display:block;
@@ -493,6 +494,9 @@
     import { GLTFLoader }
     from 'three/addons/loaders/GLTFLoader.js';
 
+    import { RGBELoader }
+    from 'three/addons/loaders/RGBELoader.js';
+
     import { EffectComposer }
     from 'three/addons/postprocessing/EffectComposer.js';
 
@@ -594,8 +598,29 @@
     const scene =
         new THREE.Scene();
 
-    scene.background =
-        new THREE.Color(0xf3f3f3);
+
+
+ scene.background =
+    new THREE.Color(0xf5f5f5);
+
+const rgbeLoader =
+    new RGBELoader();
+
+rgbeLoader.load(
+
+    '/hdri/night.hdr',
+
+    (texture)=>{
+
+        texture.mapping =
+            THREE.EquirectangularReflectionMapping;
+
+        scene.environment =
+            texture;
+
+    }
+
+);
 
 
     /* =====================================
@@ -628,10 +653,10 @@
 
         );
 
-    camera.position.set(
-        4,
-        3,
-        6
+       camera.position.set(
+        2.8,
+        2,
+        4.5
     );
 
 
@@ -662,7 +687,12 @@
 
     renderer.outputColorSpace =
         THREE.SRGBColorSpace;
+    renderer.toneMapping =
+        THREE.ACESFilmicToneMapping;
 
+    renderer.toneMappingExposure = 1;
+
+    renderer.physicallyCorrectLights = true;
     container.appendChild(
         renderer.domElement
     );
@@ -692,9 +722,9 @@
                 container.clientHeight
             ),
 
+            0.05,
             0.15,
-            0.3,
-            0.85
+            0.9
 
         );
 
@@ -733,7 +763,8 @@ controls.target.set(0,1,0);
     const ambientLight =
         new THREE.AmbientLight(
             0xffffff,
-            1.7
+            0.4
+
         );
 
     scene.add(
@@ -744,23 +775,42 @@ controls.target.set(0,1,0);
     const directionalLight =
         new THREE.DirectionalLight(
             0xffffff,
-            2
+            1
         );
 
     directionalLight.position.set(
-        5,
-        10,
-        7
+        4,
+        6,
+        4
     );
 
     directionalLight.castShadow = true;
 
     directionalLight.shadow.mapSize.width = 2048;
-
     directionalLight.shadow.mapSize.height = 2048;
-
+    directionalLight.shadow.bias = -0.0005;
+    directionalLight.shadow.radius = 6;
     scene.add(
         directionalLight
+    );
+    /* =====================================
+       FILL LIGHT
+    ===================================== */
+
+    const fillLight =
+        new THREE.DirectionalLight(
+            0xffffff,
+            0.6
+        );
+
+    fillLight.position.set(
+        -4,
+        3,
+        -2
+    );
+
+    scene.add(
+        fillLight
     );
 
 
@@ -777,7 +827,7 @@ controls.target.set(0,1,0);
     const floorMaterial =
         new THREE.MeshStandardMaterial({
 
-            color:0xe5e5e5,
+            color:0xcfc8bd,
 
             roughness:0.9
 
@@ -788,6 +838,35 @@ controls.target.set(0,1,0);
             floorGeometry,
             floorMaterial
         );
+    const shadowTexture =
+    new THREE.TextureLoader().load(
+        '/textures/shadow.png'
+    );
+
+const shadowMaterial =
+    new THREE.MeshBasicMaterial({
+
+        map: shadowTexture,
+        transparent: true,
+        opacity: 0.35
+
+    });
+
+    const shadowPlane =
+        new THREE.Mesh(
+
+            new THREE.PlaneGeometry(4,4),
+            shadowMaterial
+
+        );
+
+    shadowPlane.rotation.x =
+        -Math.PI / 2;
+
+    shadowPlane.position.y =
+        0.01;
+
+    scene.add(shadowPlane);
 
     floor.rotation.x =
         -Math.PI / 2;
@@ -878,6 +957,7 @@ let currentLegsPath =
                 child.castShadow = true;
 
                 child.receiveShadow = true;
+                child.material.envMapIntensity = 1;
 
             }
 
@@ -897,7 +977,11 @@ let currentLegsPath =
         model.traverse((child)=>{
 
             if(child.isMesh){
-
+                child.material.roughness = 0.55;
+                child.material.metalness = 0.05;
+                child.material.envMapIntensity = 3;
+                child.material.roughness = 0.55;
+                child.material.metalness = 0.05;
                 child.geometry.dispose();
 
                 if(child.material.map){
@@ -1282,6 +1366,11 @@ function updateScale(){
                 container.clientWidth,
                 container.clientHeight
             );
+          camera.aspect =
+            container.clientWidth /
+            container.clientHeight;
+
+          camera.updateProjectionMatrix();
 
         }
 
