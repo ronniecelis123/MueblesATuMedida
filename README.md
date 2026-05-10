@@ -1,19 +1,46 @@
-# Avance del Proyecto Final
+# MTM - Sistema de Configuración y Venta de Muebles Personalizados
 
-Este repositorio contiene el avance del proyecto final.
+Repositorio correspondiente al proyecto final desarrollado con Spring Boot, Thymeleaf y Three.js para la configuración y venta de muebles personalizados en 3D.
 
 ## Autor
+
 Ronie Celis Hernández
-## Contenido
 
--  **Video demostrativo**  
-  El archivo `VideoDemostrativo.mp4` contiene la explicación general del funcionamiento del proyecto.
+## Contenido del repositorio
 
--  **Base de datos**  
-  El esquema de la base de datos se encuentra en la carpeta `DB`, donde se incluyen los archivos relacionados con su estructura.
+- `mtm/`
+  
+  Contiene el código fuente completo del sistema desarrollado en Java con Spring Boot.
 
-- **Proyecto en Java**  
-  El desarrollo principal del proyecto está en la carpeta `mtm`, donde se encuentra el código fuente en Java.
+- `DB/`
+  
+  Incluye el script de base de datos utilizado para reconstruir la estructura del sistema y cargar datos base.
+
+- `VideoDemostrativo.mp4`
+  
+  Video demostrativo con el funcionamiento general del sistema y sus principales funcionalidades.
+
+## Tecnologías utilizadas
+
+- Java 17
+- Spring Boot
+- Spring Security
+- JWT
+- Hibernate / JPA
+- MariaDB
+- Thymeleaf
+- Bootstrap 5
+- Three.js
+- Blender
 
 ## Notas
-Este repositorio reúne los componentes principales del avance actual del proyecto que contempla: Un video demostrativo del funcionamiento, el código fuente del proyecto y el esquemna de la base de datos
+
+El proyecto incluye:
+
+- Sistema de autenticación JWT
+- Panel administrativo
+- CRUD de productos y materiales
+- Configurador 3D interactivo
+- Carrito de compras
+- Generación de órdenes
+- API REST
