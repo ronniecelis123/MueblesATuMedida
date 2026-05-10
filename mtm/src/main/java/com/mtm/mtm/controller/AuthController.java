@@ -249,17 +249,7 @@ public class AuthController {
     // LOGOUT
     // ==========================
     @GetMapping("/logout")
-    public String logout(
-
-            HttpServletResponse response,
-
-            @CookieValue(
-                    name = "REFRESH_TOKEN",
-                    required = false
-            )
-            String refreshTokenValue
-
-    ) {
+    public String logout(HttpServletResponse response) {
 
         Cookie jwtCookie =
                 new Cookie("JWT", "");
@@ -280,26 +270,6 @@ public class AuthController {
         refreshCookie.setMaxAge(0);
 
         response.addCookie(refreshCookie);
-
-        // ==========================
-        // ELIMINAR REFRESH TOKEN BD
-        // ==========================
-        if(refreshTokenValue != null){
-
-            RefreshToken refreshToken =
-                    refreshTokenService
-                            .findByToken(
-                                    refreshTokenValue
-                            );
-
-            if(refreshToken != null){
-
-                refreshTokenService
-                        .deleteByUsuario(
-                                refreshToken.getUsuario()
-                        );
-            }
-        }
 
         SecurityContextHolder.clearContext();
 
