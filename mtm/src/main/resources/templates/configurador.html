@@ -1,115 +1,178 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
+
     <title>Configurar Producto</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="/libs/bootstrap/css/bootstrap.min.css">
 
-    <!-- Fuente -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+          rel="stylesheet">
 
     <style>
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
+        body{
+            font-family:'Poppins',sans-serif;
+            background-color:#f8f9fa;
         }
 
-        /* CONTENEDOR */
-        .config-container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            animation: fadeIn 0.6s ease;
+        .config-container{
+            background:white;
+            border-radius:15px;
+            padding:30px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.08);
         }
 
-        /* IMAGEN */
-        .product-img {
-            width: 100%;
-            border-radius: 12px;
-            object-fit: cover;
+        /* =====================================
+           VIEWER 3D
+        ===================================== */
+
+        #viewer-container{
+            width:100%;
+            height:550px;
+            border-radius:15px;
+            overflow:hidden;
+            background:#f0f0f0;
+            border:1px solid #ddd;
         }
 
-        /* TITULOS */
-        .product-title {
-            font-weight: 600;
+        canvas{
+            display:block;
         }
 
-        .label {
-            font-weight: 500;
-            margin-top: 10px;
+        /* =====================================
+           BOTONES
+        ===================================== */
+
+        .btn-custom{
+            background-color:#ff6600;
+            color:white;
+            border-radius:25px;
+            padding:12px;
+            border:none;
         }
 
-        /* INPUTS */
-        .form-control, .form-select {
-            border-radius: 10px;
-            padding: 10px;
+        .btn-custom:hover{
+            background-color:#e65c00;
+            color:white;
         }
 
-        /* BOTON */
-        .btn-custom {
-            background-color: #ff6600;
-            color: white;
-            border-radius: 25px;
-            padding: 12px;
-            transition: 0.3s;
-        }
+        /* =====================================
+           RESULTADO
+        ===================================== */
 
-        .btn-custom:hover {
-            background-color: #e65c00;
-        }
-
-        /* ANIMACION */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .result-box{
+            background:#111;
+            color:white;
+            border-radius:15px;
+            padding:20px;
+            text-align:center;
+            margin-top:20px;
         }
 
     </style>
+
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg" style="background-color:#111;">
+
+<!-- =====================================
+     NAVBAR
+===================================== -->
+
+<nav class="navbar navbar-expand-lg"
+     style="background-color:#111;">
+
     <div class="container">
 
-        <a class="navbar-brand text-white" href="/">MTM</a>
+        <a class="navbar-brand text-white"
+           href="/">
 
-        <!-- BUSCADOR -->
-        <form class="d-flex mx-auto" method="get" action="/">
-            <input class="form-control me-2" type="search" name="search" placeholder="Buscar productos...">
-            <button class="btn btn-warning">Buscar</button>
+            MTM
+
+        </a>
+
+        <form class="d-flex mx-auto"
+              method="get"
+              action="/">
+
+            <input class="form-control me-2"
+                   type="search"
+                   name="search"
+                   placeholder="Buscar productos...">
+
+            <button class="btn btn-warning">
+
+                Buscar
+
+            </button>
+
         </form>
 
-        <!-- USUARIO -->
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 text-white">
 
-            <!-- NO LOGUEADO -->
-            <div th:if="${usuarioSesion == null}">
-                <a href="/login" class="text-white">Iniciar sesión</a>
-                <a href="/registro" class="btn btn-warning btn-sm ms-2">Registrarse</a>
-            </div>
+            <!-- INVITADO -->
 
-            <!-- LOGUEADO -->
-            <div th:if="${usuarioSesion != null}" class="text-white">
+            <div sec:authorize="isAnonymous()">
 
-                Hola, <b th:text="${usuarioSesion.nombre}"></b>
+                <a href="/login"
+                   class="text-white">
 
-                <a th:if="${usuarioSesion.rol.nombre == 'ADMIN'}"
-                   href="/admin"
-                   class="btn btn-warning btn-sm ms-2">
-                    Admin
+                    Iniciar sesión
+
                 </a>
 
-                <a href="/logout" class="btn btn-outline-light btn-sm ms-2">
+                <a href="/registro"
+                   class="btn btn-warning btn-sm ms-2">
+
+                    Registrarse
+
+                </a>
+
+            </div>
+
+            <!-- AUTENTICADO -->
+
+            <div sec:authorize="isAuthenticated()">
+
+
+                <a sec:authorize="hasRole('ADMIN')"
+                   href="/admin"
+                   class="btn btn-warning btn-sm ms-2">
+
+                    Admin
+
+                </a>
+
+                <a href="/carrito"
+                   class="btn btn-warning btn-sm">
+
+                    Carrito
+
+                </a>
+
+                <a href="/perfil"
+                   class="btn btn-outline-light btn-sm">
+
+                    Perfil
+
+                </a>
+
+                <a href="/mis-ordenes"
+                   class="btn btn-outline-light btn-sm">
+
+                    Mis compras
+
+                </a>
+
+                <a href="/logout"
+                   class="btn btn-outline-light btn-sm ms-2">
+
                     Logout
+
                 </a>
 
             </div>
@@ -117,101 +180,245 @@
         </div>
 
     </div>
+
 </nav>
 
+
+<!-- =====================================
+     CONTENIDO
+===================================== -->
 <div class="container mt-5">
 
-    <div th:if="${error}" class="alert alert-danger text-center">
+    <!-- ERROR -->
+
+    <div th:if="${error}"
+         class="alert alert-danger text-center">
+
         <span th:text="${error}"></span>
+
     </div>
+
+    <!-- CONFIG -->
 
     <div class="config-container">
 
-        <div class="row">
+        <div class="row g-4">
 
-            <!-- IMAGEN -->
-            <div class="col-md-6">
-                <img th:src="${producto.imagenUrl}" class="product-img">
+            <!-- =====================================
+                 VIEWER 3D
+            ===================================== -->
+
+            <div class="col-lg-6">
+
+                <div id="viewer-container"></div>
+
             </div>
 
-            <!-- FORMULARIO -->
-            <div class="col-md-6">
 
-                <h3 class="product-title" th:text="${producto.nombre}"></h3>
-                <p class="text-muted" th:text="${producto.descripcion}"></p>
+            <!-- =====================================
+                 FORMULARIO
+            ===================================== -->
 
-                <form th:action="@{/calcular}" method="post">
+            <div class="col-lg-6">
 
-                    <input type="hidden" name="productoId" th:value="${producto.idProducto}"/>
+                <h2 class="fw-bold"
+                    th:text="${producto.nombre}"></h2>
 
-                    <label class="label">Material</label>
-                    <select class="form-select" name="materialId" required>
+                <p class="text-muted"
+                   th:text="${producto.descripcion}"></p>
+
+
+                <!-- FORM -->
+
+                <form th:action="@{/calcular}"
+                      method="post">
+
+                    <input type="hidden"
+                           name="productoId"
+                           th:value="${producto.idProducto}"/>
+
+
+                    <!-- MATERIAL -->
+
+                    <label class="form-label fw-semibold mt-3">
+
+                        Material
+
+                    </label>
+
+                    <select id="materialSelect"
+                            class="form-select"
+                            name="materialId"
+                            required>
+
                         <option th:each="m : ${materiales}"
                                 th:value="${m.idMaterial}"
-                                th:text="${m.nombre}">
+                                th:text="${m.nombre}"
+                                th:selected="${m.idMaterial == materialSeleccionado}">
                         </option>
+
                     </select>
 
-                    <label class="label">Acabado</label>
-                    <select class="form-select" name="acabadoId" required>
-                        <option th:each="a : ${acabados}"
-                                th:value="${a.idAcabado}"
-                                th:text="${a.nombre}">
-                        </option>
-                    </select>
 
-                    <label class="label">Tipo de patas</label>
-                    <select class="form-select" name="pataId" required>
+                    <!-- PATAS -->
+
+                    <label class="form-label fw-semibold mt-4">
+
+                        Tipo de patas
+
+                    </label>
+
+                    <select id="legsSelect"
+                            class="form-select"
+                            name="pataId"
+                            required>
+
                         <option th:each="p : ${patas}"
                                 th:value="${p.idTipoPata}"
-                                th:text="${p.nombre}">
+                                th:text="${p.nombre}"
+                                th:selected="${p.idTipoPata == pataSeleccionada}">
                         </option>
+
                     </select>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="label">Largo (cm)</label>
-                            <input class="form-control"
+
+                    <!-- ACABADO -->
+
+                    <label class="form-label fw-semibold mt-4">
+
+                        Acabado
+
+                    </label>
+
+                    <select class="form-select"
+                            name="acabadoId"
+                            required>
+
+                        <option th:each="a : ${acabados}"
+                                th:value="${a.idAcabado}"
+                                th:text="${a.nombre}"
+                                th:selected="${a.idAcabado == acabadoSeleccionado}">
+                        </option>
+
+                    </select>
+
+
+                    <!-- MEDIDAS -->
+
+                    <div class="row mt-4">
+
+                        <div class="col-md-4">
+
+                            <label class="form-label">
+
+                                Largo
+
+                            </label>
+
+                            <input id="largoInput"
                                    type="number"
-                                   step="0.01"
+                                   class="form-control"
                                    name="largo"
-                                   min="1"
+                                   th:value="${largoSeleccionado != null ? largoSeleccionado : 120}"
+                                   min="50"
+                                   max="300"
+                                   step="1"
                                    required>
+
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="label">Ancho (cm)</label>
-                            <input class="form-control"
+                        <div class="col-md-4">
+
+                            <label class="form-label">
+
+                                Ancho
+
+                            </label>
+
+                            <input id="anchoInput"
                                    type="number"
-                                   step="0.01"
+                                   class="form-control"
                                    name="ancho"
-                                   min="1"
+                                   th:value="${anchoSeleccionado != null ? anchoSeleccionado : 80}"
+                                   min="50"
+                                   max="200"
+                                   step="1"
                                    required>
+
                         </div>
+
+                        <div class="col-md-4">
+
+                            <label class="form-label">
+
+                                Alto
+
+                            </label>
+
+                            <input id="altoInput"
+                                   type="number"
+                                   class="form-control"
+                                   name="alto"
+                                   th:value="${altoSeleccionado != null ? altoSeleccionado : 75}"
+                                   min="40"
+                                   max="150"
+                                   step="1"
+                                   required>
+
+                        </div>
+
                     </div>
 
-                    <div class="mt-4">
-                        <button class="btn btn-custom w-100">
-                            Calcular precio
-                        </button>
-                    </div>
+
+                    <!-- BOTON -->
+
+                    <button type="submit"
+                            class="btn btn-custom w-100 mt-4">
+
+                        Calcular precio
+
+                    </button>
 
                 </form>
 
-            </div>
-            <!-- RESULTADO -->
-            <div class="mt-4" th:if="${precio != null}">
-                <div style="
-        background: #111;
-        color: white;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        animation: fadeIn 0.5s ease;
-    ">
-                    <small>Precio estimado</small>
-                    <h2 style="margin:0;">$<span th:text="${precio}"></span></h2>
+
+                <!-- =====================================
+                     RESULTADO
+                ===================================== -->
+
+                <div th:if="${configuracion != null}"
+                     class="result-box">
+
+                    <small>
+
+                        Precio estimado
+
+                    </small>
+
+                    <h2>
+
+                        $
+                        <span th:text="${configuracion.precioCalculado}"></span>
+
+                    </h2>
+
+                    <form method="post"
+                          th:action="@{/carrito/agregar}">
+
+                        <input type="hidden"
+                               name="configuracionId"
+                               th:value="${configuracion.idConfiguracion}">
+
+                        <button class="btn btn-success w-100 mt-3">
+
+                            Agregar al carrito 🛒
+
+                        </button>
+
+                    </form>
+
                 </div>
+
             </div>
 
         </div>
@@ -220,5 +427,866 @@
 
 </div>
 
+<!-- =====================================
+     IMPORT MAP
+===================================== -->
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+</script>
+
+<!-- =====================================
+     VARIABLES THYMELEAF
+===================================== -->
+
+<script th:inline="javascript">
+
+    window.base3d =
+        [[${producto.base3d}]];
+
+    window.patas3d =
+        [[${producto.patas3d}]];
+
+    window.modeloPath =
+        [[${producto.modeloPath}]];
+
+</script>
+
+
+<!-- =====================================
+     THREE JS
+===================================== -->
+<!-- =====================================
+     VARIABLES THYMELEAF
+===================================== -->
+
+<script th:inline="javascript">
+
+    window.base3d =
+        [[${producto.base3d}]];
+
+    window.patas3d =
+        [[${producto.patas3d}]];
+
+    window.modeloPath =
+        [[${producto.modeloPath}]];
+
+</script>
+
+
+<!-- =====================================
+     THREE JS
+===================================== -->
+
+<script type="module">
+
+    import * as THREE from 'three';
+
+    import { OrbitControls }
+    from 'three/addons/controls/OrbitControls.js';
+
+    import { GLTFLoader }
+    from 'three/addons/loaders/GLTFLoader.js';
+
+    import { EffectComposer }
+    from 'three/addons/postprocessing/EffectComposer.js';
+
+    import { RenderPass }
+    from 'three/addons/postprocessing/RenderPass.js';
+
+    import { UnrealBloomPass }
+    from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+
+    /* =====================================
+       CONFIG GLOBAL MUEBLES
+    ===================================== */
+
+    const AVAILABLE_MODELS = [
+
+        'zeno',
+        'orion'
+
+    ];
+
+
+    const AVAILABLE_MATERIALS = [
+
+        'Cedro',
+        'Encino',
+        'Nogal'
+
+    ];
+
+
+    const AVAILABLE_LEGS = [
+
+        'Metal',
+        'Madera',
+        'Industrial'
+
+    ];
+
+
+    /* =====================================
+       VARIABLES THYMELEAF
+    ===================================== */
+
+    const modeloPath =
+        window.modeloPath?.toLowerCase() ||
+        'zeno';
+
+
+    /* =====================================
+       VALIDACION
+    ===================================== */
+
+    if(
+        !AVAILABLE_MODELS.includes(
+            modeloPath
+        )
+    ){
+
+        console.warn(
+            `Modelo no registrado: ${modeloPath}`
+        );
+
+    }
+
+
+    /* =====================================
+       RUTAS BASE
+    ===================================== */
+
+    function getMaterialModelPath(material){
+
+        return `/models/${modeloPath}/${modeloPath}${material}.glb`;
+
+    }
+
+
+    function getLegsModelPath(legs){
+
+        return `/models/${modeloPath}/${modeloPath}Patas${legs}.glb`;
+
+    }
+
+
+    /* =====================================
+       CONTENEDOR
+    ===================================== */
+
+    const container =
+        document.getElementById(
+            'viewer-container'
+        );
+
+
+    /* =====================================
+       ESCENA
+    ===================================== */
+
+    const scene =
+        new THREE.Scene();
+
+    scene.background =
+        new THREE.Color(0xf3f3f3);
+
+
+    /* =====================================
+       GRUPO PRINCIPAL
+    ===================================== */
+
+    const furnitureGroup =
+        new THREE.Group();
+
+    scene.add(
+        furnitureGroup
+    );
+
+
+    /* =====================================
+       CAMARA
+    ===================================== */
+
+    const camera =
+        new THREE.PerspectiveCamera(
+
+            60,
+
+            container.clientWidth /
+            container.clientHeight,
+
+            0.1,
+
+            1000
+
+        );
+
+    camera.position.set(
+        4,
+        3,
+        6
+    );
+
+
+    /* =====================================
+       RENDERER
+    ===================================== */
+
+    const renderer =
+        new THREE.WebGLRenderer({
+
+            antialias:true
+
+        });
+
+    renderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+
+    renderer.setPixelRatio(
+        window.devicePixelRatio
+    );
+
+    renderer.shadowMap.enabled = true;
+
+    renderer.shadowMap.type =
+        THREE.PCFSoftShadowMap;
+
+    renderer.outputColorSpace =
+        THREE.SRGBColorSpace;
+
+    container.appendChild(
+        renderer.domElement
+    );
+
+
+    /* =====================================
+       POST PROCESSING
+    ===================================== */
+
+    const composer =
+        new EffectComposer(
+            renderer
+        );
+
+    composer.addPass(
+        new RenderPass(
+            scene,
+            camera
+        )
+    );
+
+    const bloomPass =
+        new UnrealBloomPass(
+
+            new THREE.Vector2(
+                container.clientWidth,
+                container.clientHeight
+            ),
+
+            0.15,
+            0.3,
+            0.85
+
+        );
+
+    composer.addPass(
+        bloomPass
+    );
+
+
+    /* =====================================
+       CONTROLES
+    ===================================== */
+
+    const controls =
+        new OrbitControls(
+            camera,
+            renderer.domElement
+        );
+
+    controls.enableDamping = true;
+    controls.enableZoom = false;
+    controls.maxPolarAngle =Math.PI / 2.05;
+    controls.minPolarAngle =Math.PI / 3;
+
+
+/* =====================================
+   TARGET
+===================================== */
+
+controls.target.set(0,1,0);
+
+
+    /* =====================================
+       LUCES
+    ===================================== */
+
+    const ambientLight =
+        new THREE.AmbientLight(
+            0xffffff,
+            1.7
+        );
+
+    scene.add(
+        ambientLight
+    );
+
+
+    const directionalLight =
+        new THREE.DirectionalLight(
+            0xffffff,
+            2
+        );
+
+    directionalLight.position.set(
+        5,
+        10,
+        7
+    );
+
+    directionalLight.castShadow = true;
+
+    directionalLight.shadow.mapSize.width = 2048;
+
+    directionalLight.shadow.mapSize.height = 2048;
+
+    scene.add(
+        directionalLight
+    );
+
+
+    /* =====================================
+       PISO
+    ===================================== */
+
+    const floorGeometry =
+        new THREE.PlaneGeometry(
+            30,
+            30
+        );
+
+    const floorMaterial =
+        new THREE.MeshStandardMaterial({
+
+            color:0xe5e5e5,
+
+            roughness:0.9
+
+        });
+
+    const floor =
+        new THREE.Mesh(
+            floorGeometry,
+            floorMaterial
+        );
+
+    floor.rotation.x =
+        -Math.PI / 2;
+
+    floor.receiveShadow = true;
+
+    scene.add(
+        floor
+    );
+
+
+    /* =====================================
+       LOADER
+    ===================================== */
+
+    const loader =
+        new GLTFLoader();
+
+
+    /* =====================================
+       ESTADO ACTUAL
+    ===================================== */
+
+    let currentBase = null;
+
+    let currentLegs = null;
+
+
+
+
+
+
+    /* =====================================
+       SELECTS
+    ===================================== */
+
+    const materialSelect =
+        document.getElementById(
+            'materialSelect'
+        );
+
+    const legsSelect =
+        document.getElementById(
+            'legsSelect'
+        );
+    let currentMaterial =
+
+        materialSelect.options[
+            materialSelect.selectedIndex
+        ]
+        .text
+        .trim();
+
+
+    let currentLegType =
+
+        legsSelect.options[
+            legsSelect.selectedIndex
+        ]
+        .text
+        .trim();
+    let currentBasePath =
+    getMaterialModelPath(
+        currentMaterial
+    );
+
+let currentLegsPath =
+    getLegsModelPath(
+        currentLegType
+    );
+
+    const configForm =
+    document.querySelector('form');
+
+
+
+
+    /* =====================================
+       PREPARAR MODELO
+    ===================================== */
+
+    function prepareModel(model){
+
+        model.traverse((child)=>{
+
+            if(child.isMesh){
+
+                child.castShadow = true;
+
+                child.receiveShadow = true;
+
+            }
+
+        });
+
+    }
+
+
+    /* =====================================
+       LIMPIAR MODELO
+    ===================================== */
+
+    function disposeModel(model){
+
+        if(!model) return;
+
+        model.traverse((child)=>{
+
+            if(child.isMesh){
+
+                child.geometry.dispose();
+
+                if(child.material.map){
+
+                    child.material.map.dispose();
+
+                }
+
+                child.material.dispose();
+
+            }
+
+        });
+
+    }
+
+
+    /* =====================================
+       CARGAR BASE
+    ===================================== */
+
+    function loadBase(){
+
+        if(currentBase){
+
+            furnitureGroup.remove(
+                currentBase
+            );
+
+            disposeModel(
+                currentBase
+            );
+
+        }
+
+        loader.load(
+
+            currentBasePath,
+
+            (gltf)=>{
+
+                currentBase =
+                    gltf.scene;
+
+                prepareModel(
+                    currentBase
+                );
+
+                furnitureGroup.add(
+                    currentBase
+                );
+
+            },
+
+            undefined,
+
+            (error)=>{
+
+                console.error(
+                    'Error base:',
+                    error
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================
+       CARGAR PATAS
+    ===================================== */
+
+    function loadLegs(){
+
+        if(currentLegs){
+
+            furnitureGroup.remove(
+                currentLegs
+            );
+
+            disposeModel(
+                currentLegs
+            );
+
+        }
+
+        loader.load(
+
+            currentLegsPath,
+
+            (gltf)=>{
+
+                currentLegs =
+                    gltf.scene;
+
+                prepareModel(
+                    currentLegs
+                );
+
+                furnitureGroup.add(
+                    currentLegs
+                );
+
+            },
+
+            undefined,
+
+            (error)=>{
+
+                console.error(
+                    'Error patas:',
+                    error
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================
+       CAMBIO MATERIAL
+    ===================================== */
+
+    materialSelect.addEventListener(
+
+        'change',
+
+        ()=>{
+
+            const selectedMaterial =
+
+                materialSelect.options[
+                    materialSelect.selectedIndex
+                ]
+                .text
+                .trim();
+
+
+            currentMaterial =
+                selectedMaterial;
+
+
+            currentBasePath =
+                getMaterialModelPath(
+                    currentMaterial
+                );
+
+
+            loadBase();
+
+        }
+
+    );
+
+
+    /* =====================================
+       CAMBIO PATAS
+    ===================================== */
+
+    legsSelect.addEventListener(
+
+        'change',
+
+        ()=>{
+
+            const selectedLegs =
+
+                legsSelect.options[
+                    legsSelect.selectedIndex
+                ]
+                .text
+                .trim();
+
+
+            currentLegType =
+                selectedLegs;
+
+
+            currentLegsPath =
+                getLegsModelPath(
+                    currentLegType
+                );
+
+
+            loadLegs();
+
+        }
+
+    );
+
+function clamp(value,min,max){
+
+    return Math.max(
+        min,
+        Math.min(max,value)
+    );
+
+}
+
+
+function updateScale(){
+
+    let largo =
+        parseFloat(
+            document.getElementById(
+                'largoInput'
+            ).value
+        );
+
+    let ancho =
+        parseFloat(
+            document.getElementById(
+                'anchoInput'
+            ).value
+        );
+
+    let alto =
+        parseFloat(
+            document.getElementById(
+                'altoInput'
+            ).value
+        );
+
+    ['largoInput','anchoInput','altoInput']
+    .forEach((id)=>{
+
+        document.getElementById(id)
+        .addEventListener(
+
+            'keydown',
+
+            (event)=>{
+
+                if(event.key === 'Enter'){
+
+                    event.preventDefault();
+
+                }
+
+            }
+
+        );
+
+    });
+    /* =====================================
+       VALIDACION
+    ===================================== */
+
+    if(isNaN(largo)) largo = 120;
+
+    if(isNaN(ancho)) ancho = 80;
+
+    if(isNaN(alto)) alto = 75;
+
+
+    largo =
+        clamp(largo,50,150);
+
+    ancho =
+        clamp(ancho,50,170);
+
+    alto =
+        clamp(alto,40,100);
+
+
+    /* =====================================
+       REFLEJAR INPUTS
+    ===================================== */
+
+    document.getElementById(
+        'largoInput'
+    ).value = largo;
+
+    document.getElementById(
+        'anchoInput'
+    ).value = ancho;
+
+    document.getElementById(
+        'altoInput'
+    ).value = alto;
+
+
+    /* =====================================
+       ESCALADO
+    ===================================== */
+
+    furnitureGroup.scale.set(
+
+        ancho / 100,
+
+        alto / 75,
+
+        largo / 100
+
+    );
+
+}
+
+
+    /* =====================================
+       INPUTS
+    ===================================== */
+
+        document.getElementById(
+        'largoInput'
+    ).addEventListener(
+        'blur',
+        updateScale
+    );
+
+    document.getElementById(
+        'anchoInput'
+    ).addEventListener(
+        'blur',
+        updateScale
+    );
+
+    document.getElementById(
+        'altoInput'
+    ).addEventListener(
+        'blur',
+        updateScale
+    );
+
+
+    /* =====================================
+       CARGA INICIAL
+    ===================================== */
+
+    loadBase();
+
+    loadLegs();
+
+    updateScale();
+
+
+    /* =====================================
+       ANIMACION
+    ===================================== */
+
+    function animate(){
+
+        requestAnimationFrame(
+            animate
+        );
+
+        controls.update();
+
+        composer.render();
+
+    }
+
+    animate();
+
+
+    /* =====================================
+       RESPONSIVE
+    ===================================== */
+
+    window.addEventListener(
+
+        'resize',
+
+        ()=>{
+
+            camera.aspect =
+                container.clientWidth /
+                container.clientHeight;
+
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(
+                container.clientWidth,
+                container.clientHeight
+            );
+
+            composer.setSize(
+                container.clientWidth,
+                container.clientHeight
+            );
+
+        }
+
+    );
+
+</script>
 </body>
 </html>

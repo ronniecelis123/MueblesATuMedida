@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Carrito</title>
+    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.min.css">
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg" style="background-color:#111;">
+    <div class="container">
+        <a class="navbar-brand text-white" href="/">MTM</a>
+
+        <div class="text-white d-flex align-items-center gap-2">
+            <span sec:authentication="name"></span>
+
+            <a href="/carrito" class="btn btn-warning btn-sm">
+                Carrito
+            </a>
+            <a href="/perfil"
+               class="btn btn-outline-light btn-sm">
+                Perfil
+            </a>
+            <a href="/mis-ordenes"
+               class="btn btn-outline-light btn-sm">
+
+                Mis compras
+
+            </a>
+
+            <a href="/logout" class="btn btn-outline-light btn-sm">
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <div th:if="${param.vacio}"
+         class="alert alert-warning">
+
+        No puedes finalizar una compra con el carrito vacío.
+
+    </div>
+
+    <h2>Carrito</h2>
+
+    <table class="table table-striped mt-3">
+
+        <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Acción</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="item : ${carrito.detalles}">
+            <td th:text="${item.configuracion.producto.nombre}"></td>
+            <td>$<span th:text="${item.subtotal}"></span></td>
+
+            <td>
+                <form th:action="@{/carrito/eliminar}" method="post">
+                    <input type="hidden" name="detalleId" th:value="${item.idDetalle}">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        Eliminar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+
+    </table>
+
+    <!-- TOTAL -->
+    <div class="mt-3 text-end">
+        <h4>Total: $<span th:text="${carrito.total}"></span></h4>
+    </div>
+
+    <div class="mt-4">
+        <form method="post" action="/carrito/checkout">
+            <button class="btn btn-primary w-100">
+                Finalizar compra
+            </button>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

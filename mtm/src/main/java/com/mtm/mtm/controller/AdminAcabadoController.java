@@ -3,8 +3,10 @@ package com.mtm.mtm.controller;
 import com.mtm.mtm.model.Acabado;
 import com.mtm.mtm.model.Usuario;
 import com.mtm.mtm.repository.AcabadoRepository;
-import jakarta.servlet.http.HttpSession;
+import com.mtm.mtm.repository.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,42 +20,68 @@ public class AdminAcabadoController {
     @Autowired
     private AcabadoRepository acabadoRepository;
 
-    // LISTAR
-    @GetMapping
-    public String listar(Model model, HttpSession session) {
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+    // ==========================
+    // LISTAR
+    // ==========================
+    @GetMapping
+    public String listar(Model model,
+                         Authentication authentication) {
+
+        Usuario usuario = usuarioRepository
+                .findByEmail(authentication.getName());
+
         model.addAttribute("usuarioSesion", usuario);
 
-        model.addAttribute("acabados", acabadoRepository.findAll());
+        model.addAttribute(
+                "acabados",
+                acabadoRepository.findAll()
+        );
 
         return "admin/acabados";
     }
 
+    // ==========================
     // NUEVO
+    // ==========================
     @GetMapping("/nuevo")
-    public String nuevo(Model model, HttpSession session) {
+    public String nuevo(Model model,
+                        Authentication authentication) {
 
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        Usuario usuario = usuarioRepository
+                .findByEmail(authentication.getName());
+
         model.addAttribute("usuarioSesion", usuario);
 
-        model.addAttribute("acabado", new Acabado());
+        model.addAttribute(
+                "acabado",
+                new Acabado()
+        );
 
         return "admin/acabado-form";
     }
 
+    // ==========================
     // GUARDAR
+    // ==========================
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Acabado acabado) {
 
-        //  VALIDACIÓN IMPORTANTE
+        // VALIDAR FACTOR
         if (acabado.getFactorPrecio() == null ||
-                acabado.getFactorPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+                acabado.getFactorPrecio()
+                        .compareTo(BigDecimal.ZERO) <= 0) {
 
-            acabado.setFactorPrecio(new BigDecimal("1.0"));
+            acabado.setFactorPrecio(
+                    new BigDecimal("1.0")
+            );
         }
 
+        // ACTIVO DEFAULT
         if (acabado.getActivo() == null) {
+
             acabado.setActivo(true);
         }
 
@@ -62,19 +90,34 @@ public class AdminAcabadoController {
         return "redirect:/admin/acabados";
     }
 
+    // ==========================
     // EDITAR
+    // ==========================
     @GetMapping("/editar/{id}")
-    public String editar(@PathVariable Integer id, Model model, HttpSession session) {
+    public String editar(@PathVariable Integer id,
+                         Model model,
+                         Authentication authentication) {
 
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        Usuario usuario = usuarioRepository
+                .findByEmail(authentication.getName());
+
+        Acabado acabado = acabadoRepository
+                .findById(id)
+                .orElseThrow();
+
         model.addAttribute("usuarioSesion", usuario);
 
-        Acabado acabado = acabadoRepository.findById(id).orElseThrow();
-        model.addAttribute("acabado", acabado);
+        model.addAttribute(
+                "acabado",
+                acabado
+        );
 
         return "admin/acabado-form";
     }
 
+    // ==========================
+    // ELIMINAR
+    // ==========================
     @GetMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id) {
 

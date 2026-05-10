@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Productos</title>
+
+    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.min.css">
+
+    <style>
+
+        body {
+            background: #f5f5f5;
+        }
+
+        .sidebar {
+            height: calc(100vh - 70px);
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
+        .sidebar a:hover {
+            background: #ff6600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .btn-custom {
+            background: #ff6600;
+            color: white;
+        }
+
+        img {
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg"
+     style="background-color:#111;">
+
+    <div class="container">
+
+        <a class="navbar-brand text-white"
+           href="/">MTM</a>
+
+    </div>
+
+</nav>
+
+<!-- LAYOUT -->
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- SIDEBAR -->
+        <div class="col-md-2 sidebar">
+
+            <h4>Admin</h4>
+
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/productos">Productos</a>
+            <a href="/admin/materiales">Materiales</a>
+            <a href="/admin/acabados">Acabados</a>
+            <a href="/admin/patas">Patas</a>
+
+            <hr>
+
+            <a href="/">Volver a tienda</a>
+
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="col-md-10 content">
+
+            <div class="box">
+
+                <div class="d-flex justify-content-between mb-3">
+
+                    <h3>Productos</h3>
+
+                    <a href="/admin/productos/nuevo"
+                       class="btn btn-custom">
+
+                        + Nuevo Producto
+
+                    </a>
+
+                </div>
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Precio Base</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="p : ${productos}">
+
+                        <!-- IMAGEN -->
+                        <td>
+
+                            <img th:src="${p.imagenUrl}"
+                                 width="80"
+                                 height="80">
+
+                        </td>
+
+                        <!-- NOMBRE -->
+                        <td th:text="${p.nombre}"></td>
+
+                        <!-- CATEGORÍA -->
+                        <td th:text="${p.categoria}"></td>
+
+                        <!-- PRECIO -->
+                        <td>
+                            $<span th:text="${p.precioBase}"></span>
+                        </td>
+
+                        <!-- ESTADO -->
+                        <td>
+
+                            <span th:if="${p.activo}"
+                                  class="badge bg-success">
+
+                                Activo
+
+                            </span>
+
+                            <span th:unless="${p.activo}"
+                                  class="badge bg-danger">
+
+                                Inactivo
+
+                            </span>
+
+                        </td>
+
+                        <!-- ACCIONES -->
+                        <td class="text-end">
+
+                            <!-- EDITAR -->
+                            <a th:href="@{'/admin/productos/editar/' + ${p.idProducto}}"
+                               class="btn btn-warning btn-sm">
+
+                                Editar
+
+                            </a>
+
+                            <!-- DESACTIVAR -->
+                            <a th:if="${p.activo}"
+                               th:href="@{'/admin/productos/desactivar/' + ${p.idProducto}}"
+                               class="btn btn-danger btn-sm">
+
+                                Desactivar
+
+                            </a>
+
+                            <!-- ACTIVAR -->
+                            <a th:unless="${p.activo}"
+                               th:href="@{'/admin/productos/activar/' + ${p.idProducto}}"
+                               class="btn btn-success btn-sm">
+
+                                Activar
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

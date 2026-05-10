@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <title>Mi Perfil</title>
+
+    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        body {
+            background: #f5f5f5;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .navbar {
+            background-color: #111;
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .card-profile {
+
+            max-width: 600px;
+            margin: 60px auto;
+
+            background: white;
+
+            padding: 40px;
+
+            border-radius: 15px;
+
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+
+    <div class="container">
+
+        <a class="navbar-brand text-white"
+           href="/">
+
+            MTM
+
+        </a>
+
+        <!-- USUARIO -->
+        <div class="d-flex align-items-center gap-3 text-white">
+
+            <!-- NO AUTENTICADO -->
+            <div sec:authorize="isAnonymous()">
+
+                <a href="/login"
+                   class="text-white">
+
+                    Iniciar sesión
+
+                </a>
+
+                <a href="/registro"
+                   class="btn btn-warning btn-sm ms-2">
+
+                    Registrarse
+
+                </a>
+
+            </div>
+
+            <!-- AUTENTICADO -->
+            <div sec:authorize="isAuthenticated()">
+
+
+
+                <!-- ADMIN -->
+                <a sec:authorize="hasRole('ADMIN')"
+                   href="/admin"
+                   class="btn btn-warning btn-sm ms-2">
+
+                    Admin
+
+                </a>
+
+                <!-- CARRITO -->
+                <a href="/carrito"
+                   class="btn btn-warning btn-sm">
+
+                    Carrito
+
+                </a>
+
+                <!-- PERFIL -->
+                <a href="/perfil"
+                   class="btn btn-outline-light btn-sm">
+
+                    Perfil
+
+                </a>
+
+                <!-- COMPRAS -->
+                <a href="/mis-ordenes"
+                   class="btn btn-outline-light btn-sm">
+
+                    Mis compras
+
+                </a>
+
+                <!-- LOGOUT -->
+                <a href="/logout"
+                   class="btn btn-outline-light btn-sm ms-2">
+
+                    Logout
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<!-- CONTENIDO -->
+<div class="container">
+
+    <div class="card-profile">
+
+        <h2 class="mb-4">
+
+            Mi Perfil
+
+        </h2>
+
+        <!-- ERROR ADMIN -->
+        <div th:if="${param.error}"
+             class="alert alert-danger">
+
+            La cuenta administrador no puede eliminarse.
+
+        </div>
+
+        <!-- EMAIL -->
+        <div class="mb-3">
+
+            <label class="form-label">
+
+                Email
+
+            </label>
+
+            <input class="form-control"
+                   th:value="${usuario.email}"
+                   disabled>
+
+        </div>
+
+        <!-- ACTUALIZAR NOMBRE -->
+        <form method="post"
+              action="/perfil/actualizar">
+
+            <div class="mb-3">
+
+                <label class="form-label">
+
+                    Nombre
+
+                </label>
+
+                <input class="form-control"
+                       name="nombre"
+                       th:value="${usuario.nombre}"
+                       required>
+
+            </div>
+
+            <button class="btn btn-dark w-100">
+
+                Guardar cambios
+
+            </button>
+
+        </form>
+
+        <hr class="my-4">
+
+        <!-- ELIMINAR CUENTA -->
+        <form method="post"
+              action="/perfil/eliminar"
+              th:if="${usuario.rol.nombre != 'ADMIN'}">
+
+            <button class="btn btn-danger w-100"
+                    onclick="return confirm('¿Eliminar cuenta?')">
+
+                Eliminar cuenta
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

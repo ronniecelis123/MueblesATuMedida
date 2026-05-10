@@ -3,9 +3,9 @@ package com.mtm.mtm.controller;
 import com.mtm.mtm.model.*;
 import com.mtm.mtm.repository.*;
 import com.mtm.mtm.service.ConfiguracionService;
-
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,27 +31,50 @@ public class ConfiguradorController {
 
     @Autowired
     private ConfiguracionService configuracionService;
+
+    @Autowired
+    private ConfiguracionRepository configuracionRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    // ==========================
+    // MÉTODO PARA OBTENER USUARIO
+    // ==========================
+    private Usuario obtenerUsuario(Authentication authentication) {
+
+        if (authentication != null &&
+                authentication.isAuthenticated() &&
+                !authentication.getName().equals("anonymousUser")) {
+
+            return usuarioRepository.findByEmail(authentication.getName());
+        }
+
+        return null;
+    }
+
+    // ==========================
+    // CATÁLOGO
+    // ==========================
     @GetMapping("/")
     public String catalogo(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String categoria,
             Model model,
-            HttpSession session
+            Authentication authentication
     ) {
 
-        // USUARIO EN SESIÓN
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        Usuario usuario = obtenerUsuario(authentication);
         model.addAttribute("usuarioSesion", usuario);
 
-        //PRODUCTOS
         List<Producto> productos;
 
         if (search != null && !search.isEmpty()) {
-            productos = productoRepository.findByNombreContainingIgnoreCase(search);
+            productos = productoRepository.findByActivoTrueAndNombreContainingIgnoreCase(search);
         } else if (categoria != null && !categoria.isEmpty()) {
-            productos = productoRepository.findByCategoria(categoria);
+            productos = productoRepository.findByActivoTrueAndCategoria(categoria);
         } else {
-            productos = productoRepository.findAll();
+            productos = productoRepository.findByActivoTrue();
         }
 
         model.addAttribute("productos", productos);
@@ -59,11 +82,14 @@ public class ConfiguradorController {
         return "catalogo";
     }
 
+    // ==========================
+    // RECARGAR CONFIGURADOR
+    // ==========================
+    private String recargarConfigurador(Integer productoId, Model model, Usuario usuario) {
 
-    private String recargarConfigurador(Integer productoId, Model model) {
+        Producto producto = productoRepository.findById(productoId).orElse(null);
 
-        Producto producto = productoRepository.findById(productoId).orElseThrow();
-
+        model.addAttribute("usuarioSesion", usuario);
         model.addAttribute("producto", producto);
         model.addAttribute("materiales", materialRepository.findAll());
         model.addAttribute("acabados", acabadoRepository.findAll());
@@ -72,6 +98,9 @@ public class ConfiguradorController {
         return "configurador";
     }
 
+    // ==========================
+    // CALCULAR PRECIO
+    // ==========================
     @PostMapping("/calcular")
     public String calcularPrecio(
             @RequestParam Integer productoId,
@@ -80,11 +109,17 @@ public class ConfiguradorController {
             @RequestParam Integer pataId,
             @RequestParam BigDecimal largo,
             @RequestParam BigDecimal ancho,
+            @RequestParam Double alto,
             Model model,
-            HttpSession session
+            Authentication authentication
     ) {
 
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        Usuario usuario = obtenerUsuario(authentication);
+
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
         model.addAttribute("usuarioSesion", usuario);
 
         // VALIDACIONES
@@ -92,17 +127,16 @@ public class ConfiguradorController {
                 ancho.compareTo(BigDecimal.ZERO) <= 0) {
 
             model.addAttribute("error", "Las dimensiones deben ser mayores a 0");
-            return recargarConfigurador(productoId, model);
+            return recargarConfigurador(productoId, model, usuario);
         }
 
         if (largo.compareTo(new BigDecimal("500")) > 0 ||
                 ancho.compareTo(new BigDecimal("500")) > 0) {
 
             model.addAttribute("error", "Dimensiones demasiado grandes");
-            return recargarConfigurador(productoId, model);
+            return recargarConfigurador(productoId, model, usuario);
         }
 
-        // Convertir
         BigDecimal largoM = largo.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
         BigDecimal anchoM = ancho.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
 
@@ -114,24 +148,77 @@ public class ConfiguradorController {
         BigDecimal precio = configuracionService.calcularPrecio(
                 producto, material, acabado, pata, largoM, anchoM
         );
+
         precio = precio.setScale(2, RoundingMode.HALF_UP);
-        model.addAttribute("precio", precio);
-        // Recargar datos
-        model.addAttribute("producto", producto);
-        model.addAttribute("materiales", materialRepository.findAll());
-        model.addAttribute("acabados", acabadoRepository.findAll());
-        model.addAttribute("patas", tipoPataRepository.findAll());
 
-        model.addAttribute("precio", precio);
+        // GUARDAR CONFIGURACIÓN
+        Configuracion config = new Configuracion();
+        config.setProducto(producto);
+        config.setMaterial(material);
+        config.setAcabado(acabado);
+        config.setTipoPata(pata);
+        config.setLargo(largo.doubleValue());
+        config.setAncho(ancho.doubleValue());
+        config.setAlto(alto);
+        config.setPrecioCalculado(precio.doubleValue());
 
-        return "configurador";
+        config.setUsuario(usuario);
+
+        Configuracion configGuardada = configuracionRepository.save(config);
+
+        // ENVIAR A VISTA
+        model.addAttribute("configuracion", configGuardada);
+        model.addAttribute("precio", precio);
+        model.addAttribute(
+                "materialSeleccionado",
+                materialId
+        );
+
+        model.addAttribute(
+                "acabadoSeleccionado",
+                acabadoId
+        );
+
+        model.addAttribute(
+                "pataSeleccionada",
+                pataId
+        );
+
+        model.addAttribute(
+                "largoSeleccionado",
+                largo
+        );
+
+        model.addAttribute(
+                "anchoSeleccionado",
+                ancho
+        );
+
+        model.addAttribute(
+                "altoSeleccionado",
+                alto
+        );
+
+        return recargarConfigurador(productoId, model, usuario);
     }
 
-
+    // ==========================
+    // CONFIGURAR PRODUCTO
+    // ==========================
     @GetMapping("/configurar/{id}")
-    public String configurar(@PathVariable Integer id, Model model, HttpSession session) {
 
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
+    public String configurar(@PathVariable Integer id, Model model, HttpServletRequest request) {
+
+        Usuario usuario = null;
+
+        if (request.getUserPrincipal() != null) {
+
+            String email = request.getUserPrincipal().getName();
+
+            usuario = usuarioRepository.findByEmail(email);
+        }
+
+        model.addAttribute("usuarioSesion", usuario);
         model.addAttribute("usuarioSesion", usuario);
 
         Producto producto = productoRepository.findById(id).orElseThrow();
@@ -140,9 +227,6 @@ public class ConfiguradorController {
         model.addAttribute("materiales", materialRepository.findAll());
         model.addAttribute("acabados", acabadoRepository.findAll());
         model.addAttribute("patas", tipoPataRepository.findAll());
-        System.out.println("ID: " + producto.getIdProducto());
-        System.out.println("NOMBRE: " + producto.getNombre());
-        System.out.println("PRECIO BASE: " + producto.getPrecioBase());
 
         return "configurador";
     }
